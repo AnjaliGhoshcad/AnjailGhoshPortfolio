@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anjali Ghosh — Jewelry CAD Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<style>
+:root{--bg:#0B0B0B;--gold:#D4AF37;--gold-2:#F7E7A1;--white:#FFFFFF;--beige:#F5E6D3;--line:rgba(212,175,55,.18)}
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+html,body{background:var(--bg);color:var(--beige);overflow-x:hidden;cursor:none}
+body{font-family:'Jost',sans-serif;font-weight:300}
+h1,h2,h3,h4,.serif{font-family:'Cormorant Garamond',serif}
+::selection{background:var(--gold);color:#0B0B0B}
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:9999;border-radius:50%;transform:translate(-50%,-50%)}
+.cursor-dot{width:5px;height:5px;background:var(--gold-2)}
+.cursor-ring{width:34px;height:34px;border:1px solid var(--gold);transition:width .25s,height .25s,opacity .25s,border-color .25s}
+.cursor-ring.big{width:64px;height:64px;border-color:var(--gold-2);background:rgba(212,175,55,.08)}
+@media(max-width:900px){.cursor-dot,.cursor-ring{display:none}html,body{cursor:auto}}
+#preloader{position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 1s ease,visibility 1s ease}
+#preloader .diamond-wrap{width:90px;height:90px}
+#preloader svg{width:100%;height:100%;animation:spin 3.2s linear infinite}
+#preloader .facet{fill:none;stroke:var(--gold);stroke-width:.6;opacity:.85}
+@keyframes spin{to{transform:rotate(360deg)}}
+#preloader .name{margin-top:28px;font-family:'Cormorant Garamond',serif;letter-spacing:.45em;font-size:13px;color:var(--gold-2);opacity:0}
+#preloader .barwrap{margin-top:18px;width:160px;height:1px;background:rgba(212,175,55,.2);position:relative;overflow:hidden}
+#preloader .bar{position:absolute;left:0;top:0;height:100%;width:0%;background:var(--gold)}
+nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;justify-content:space-between;padding:22px 5vw;mix-blend-mode:difference}
+.brand{font-family:'Cormorant Garamond',serif;font-size:22px;letter-spacing:.15em;color:var(--white)}
+.nav-links{display:flex;gap:36px;font-size:12px;letter-spacing:.18em;text-transform:uppercase}
+.nav-links a{color:var(--beige);position:relative;padding-bottom:4px}
+.nav-links a::after{content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--gold-2);transition:width .35s ease}
+.nav-links a:hover::after{width:100%}
+@media(max-width:900px){.nav-links{display:none}}
+#hero{position:relative;height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+#hero-canvas{position:absolute;inset:0;z-index:1;opacity:.9}
+.gold-dust{position:absolute;inset:0;z-index:2;pointer-events:none}
+.hero-inner{position:relative;z-index:3;padding:0 6vw}
+.hero-eyebrow{font-size:12px;letter-spacing:.5em;text-transform:uppercase;color:var(--gold);margin-bottom:18px}
+.hero-title{font-size:clamp(56px,11vw,150px);line-height:.95;font-weight:400;color:var(--white);letter-spacing:.02em}
+.hero-title .accent{color:var(--gold);font-style:italic;font-weight:300}
+.split-line{overflow:hidden}
+.split-line span{display:inline-block;transform:translateY(110%)}
+.hero-sub{margin-top:22px;font-size:clamp(14px,2vw,18px);letter-spacing:.08em;color:var(--beige);text-transform:uppercase}
+.hero-tag{max-width:520px;margin:20px auto 0;font-size:15px;line-height:1.8;color:rgba(245,230,211,.75)}
+.hero-btns{margin-top:40px;display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.btn-gold{padding:15px 38px;border:1px solid var(--gold);color:var(--gold-2);font-size:12px;letter-spacing:.2em;text-transform:uppercase;position:relative;overflow:hidden;transition:color .4s}
+.btn-gold span{position:relative;z-index:2}
+.btn-gold::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateY(101%);transition:transform .45s cubic-bezier(.77,0,.18,1);z-index:1}
+.btn-gold:hover{color:#0B0B0B}
+.btn-gold:hover::before{transform:translateY(0)}
+.btn-ghost{padding:15px 38px;color:var(--beige);font-size:12px;letter-spacing:.2em;text-transform:uppercase;border-bottom:1px solid transparent;transition:border-color .3s,color .3s}
+.btn-ghost:hover{border-color:var(--gold-2);color:var(--gold-2)}
+.scroll-hint{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);z-index:3;font-size:10px;letter-spacing:.3em;color:rgba(245,230,211,.5);text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:10px}
+.scroll-hint .line{width:1px;height:40px;background:linear-gradient(var(--gold),transparent);animation:dropline 2s ease-in-out infinite}
+@keyframes dropline{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}50.001%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+.section{position:relative;padding:140px 6vw}
+.eyebrow{font-size:12px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:18px;display:flex;align-items:center;gap:14px}
+.eyebrow::before{content:'';width:30px;height:1px;background:var(--gold)}
+.sec-title{font-size:clamp(34px,5vw,64px);color:var(--white);font-weight:400;line-height:1.1}
+#about{display:grid;grid-template-columns:.9fr 1.1fr;gap:80px;align-items:center}
+@media(max-width:900px){#about{grid-template-columns:1fr}}
+.portrait-frame{position:relative;aspect-ratio:3/4;border:1px solid var(--line);padding:18px}
+.portrait-inner{width:100%;height:100%;background:radial-gradient(circle at 30% 20%,rgba(212,175,55,.18),transparent 60%),linear-gradient(160deg,#1c1a16,#0b0b0b 70%);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.portrait-inner svg{width:46%;opacity:.9}
+.portrait-caption{position:absolute;bottom:-16px;right:-16px;background:var(--bg);border:1px solid var(--line);padding:10px 18px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-2)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:50px}
+@media(max-width:640px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.stat{border-top:1px solid var(--line);padding-top:16px}
+.stat .num{font-family:'Cormorant Garamond',serif;font-size:42px;color:var(--gold-2)}
+.stat .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,230,211,.65);margin-top:4px}
+.skills-grid,.ach-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:60px}
+@media(max-width:900px){.skills-grid,.ach-grid{grid-template-columns:repeat(2,1fr)}}
+.skill-card{background:var(--bg);padding:34px 26px;transition:background .4s}
+.skill-card:hover{background:#141210}
+.skill-name{font-size:15px;letter-spacing:.04em;color:var(--white);padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--gold)}
+.skill-desc{font-size:13px;line-height:1.7;color:rgba(245,230,211,.65)}
+.filter-row{display:flex;flex-wrap:wrap;gap:10px;margin:50px 0 40px}
+.filter-btn{padding:10px 22px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;border:1px solid var(--line);color:rgba(245,230,211,.7);transition:all .3s}
+.filter-btn.active,.filter-btn:hover{border-color:var(--gold);color:var(--gold-2);background:rgba(212,175,55,.06)}
+.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:1000px){.gallery{grid-template-columns:repeat(2,1fr)}}
+.piece{position:relative;overflow:hidden;border:1px solid var(--line);cursor:none}
+@media(max-width:620px){.gallery{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;padding-bottom:6px;scrollbar-width:none}.gallery::-webkit-scrollbar{display:none}.piece{flex:0 0 72%;scroll-snap-align:start}.slider-hint{display:block!important}}
+.slider-hint{display:none;text-align:center;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,230,211,.4);margin-top:16px}
+.piece-art{aspect-ratio:4/3;width:100%;background:#fff;overflow:hidden}
+.piece-art.dark{background:#000}
+.piece-art img{width:100%;height:100%;object-fit:contain;transition:transform .6s cubic-bezier(.16,1,.3,1)}
+.piece:hover .piece-art img{transform:scale(1.08)}
+.piece-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.88),transparent 55%);display:flex;flex-direction:column;justify-content:flex-end;padding:18px;opacity:0;transition:opacity .4s}
+.piece:hover .piece-overlay{opacity:1}
+.piece-cat{font-size:10px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}
+.piece-name{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--white);margin-top:4px}
+#lightbox{position:fixed;inset:0;background:rgba(6,6,5,.96);z-index:2000;display:none;align-items:center;justify-content:center;padding:6vw}
+#lightbox.open{display:flex}
+.lb-inner{max-width:900px;width:100%;text-align:center}
+#lb-art img{max-width:100%;max-height:62vh;margin:0 auto 24px;display:block;border:1px solid var(--line)}
+.lb-spec{font-size:13px;letter-spacing:.06em;color:rgba(245,230,211,.7);margin-top:10px;line-height:1.7}
+.lb-close{position:absolute;top:30px;right:5vw;font-size:12px;letter-spacing:.2em;color:var(--gold-2);text-transform:uppercase}
+.timeline{position:relative;margin-top:70px;padding-left:40px}
+.timeline::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:1px;background:var(--line)}
+.t-item{position:relative;padding-bottom:64px}
+.t-item:last-child{padding-bottom:0}
+.t-dot{position:absolute;left:-44px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px rgba(212,175,55,.7)}
+.t-role{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--white)}
+.t-co{color:var(--gold-2);font-size:13px;letter-spacing:.08em;margin-top:4px}
+.t-date{font-size:11px;color:rgba(245,230,211,.5);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.t-list{margin-top:18px;display:grid;gap:10px}
+.t-list li{font-size:14px;line-height:1.7;color:rgba(245,230,211,.78);padding-left:18px;position:relative}
+.t-list li::before{content:'';position:absolute;left:0;top:9px;width:6px;height:1px;background:var(--gold)}
+.ach-card{background:var(--bg);padding:40px 26px;text-align:center}
+.ach-title{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--white);line-height:1.3}
+.ach-text{font-size:13px;line-height:1.7;color:rgba(245,230,211,.65);margin-top:14px}
+#passion{min-height:80vh;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}
+#passion canvas{position:absolute;inset:0;opacity:.55}
+.passion-inner{position:relative;z-index:2;max-width:780px;padding:0 6vw}
+.passion-title{font-size:clamp(30px,5.5vw,64px);color:var(--white);letter-spacing:.04em;line-height:1.15}
+.passion-text{margin-top:26px;font-size:16px;line-height:2;color:rgba(245,230,211,.78)}
+#contact{display:block;max-width:640px;margin:0 auto}
+.contact-info-row{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:22px 0;font-size:14px}
+.contact-info-row .k{letter-spacing:.15em;text-transform:uppercase;color:rgba(245,230,211,.5)}
+.contact-info-row .v{color:var(--gold-2)}
+.social-row{display:flex;gap:30px;margin-top:36px;justify-content:center}
+.social-row a{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--beige);position:relative;padding-bottom:4px}
+.social-row a::after{content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--gold);transition:width .3s}
+.social-row a:hover::after{width:100%}
+footer{padding:70px 6vw 40px;text-align:center;border-top:1px solid var(--line)}
+footer .fname{font-family:'Cormorant Garamond',serif;font-size:18px;letter-spacing:.3em;color:var(--gold-2)}
+footer .ftag{font-size:11px;letter-spacing:.15em;color:rgba(245,230,211,.45);margin-top:10px;text-transform:uppercase}
+.reveal{opacity:0;transform:translateY(40px)}
+</style>
+</head>
+<body>
+<svg width="0" height="0"><defs><linearGradient id="shimmerGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#D4AF37"/><stop offset="50%" stop-color="#F7E7A1"/><stop offset="100%" stop-color="#D4AF37"/></linearGradient></defs></svg>
+<div class="cursor-dot"></div><div class="cursor-ring"></div>
+
+<div id="preloader">
+  <div class="diamond-wrap"><svg viewBox="0 0 100 100">
+    <polygon class="facet" stroke="url(#shimmerGrad)" points="50,8 70,38 50,92 30,38"/>
+    <polygon class="facet" points="20,38 80,38 50,8"/><line class="facet" x1="20" y1="38" x2="80" y2="38"/>
+    <line class="facet" x1="50" y1="8" x2="50" y2="92"/><line class="facet" x1="30" y1="38" x2="50" y2="92"/><line class="facet" x1="70" y1="38" x2="50" y2="92"/>
+  </svg></div>
+  <div class="name">ANJALI GHOSH</div>
+  <div class="barwrap"><div class="bar" id="loadbar"></div></div>
+</div>
+
+<nav>
+  <div class="brand">AG</div>
+  <div class="nav-links">
+    <a href="#about">About</a><a href="#collections">Work</a><a href="#experience">Experience</a><a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<section id="hero">
+  <canvas id="hero-canvas"></canvas><canvas class="gold-dust" id="dust-canvas"></canvas>
+  <div class="hero-inner">
+    <div class="hero-eyebrow reveal">Jewelry CAD Designer · Jaipur</div>
+    <h1 class="hero-title"><div class="split-line"><span>ANJALI</span></div><div class="split-line"><span class="accent">Ghosh</span></div></h1>
+    <div class="hero-sub reveal">CAD Designer · Diamond, Colour Stone &amp; Polki</div>
+    <p class="hero-tag reveal">Transforming concepts into timeless jewelry through CAD precision, creativity, and craftsmanship.</p>
+    <div class="hero-btns reveal"><a href="#collections" class="btn-gold"><span>View My Work</span></a><a href="#contact" class="btn-ghost">Contact Me</a></div>
+  </div>
+  <div class="scroll-hint"><span>Scroll</span><span class="line"></span></div>
+</section>
+
+<section class="section" id="about">
+  <div class="portrait-frame reveal"><div class="portrait-inner"><svg viewBox="0 0 100 100">
+    <polygon points="50,10 85,40 50,90 15,40" fill="none" stroke="#D4AF37" stroke-width=".6"/>
+    <polygon points="20,40 80,40 50,10" fill="none" stroke="#D4AF37" stroke-width=".4" opacity=".6"/>
+    <line x1="50" y1="10" x2="50" y2="90" stroke="#F7E7A1" stroke-width=".3" opacity=".5"/></svg></div>
+    <div class="portrait-caption">Jaipur, Rajasthan</div></div>
+  <div>
+    <div class="eyebrow reveal">About</div>
+    <h2 class="sec-title reveal">Crafting Timeless Elegance Through CAD Innovation</h2>
+    <p class="reveal" style="margin-top:26px;font-size:16px;line-height:1.95;color:rgba(245,230,211,.78);max-width:540px">
+      With 4 years of hands-on experience in the jewelry industry, I have developed strong expertise in CAD and practical jewelry design, with special expertise in export work. I work on diamond, colour stone and polki jewelry in gold and silver, and I am proficient in Rhino and Matrix, creating CAD models as per the design along with rendering.</p>
+    <div class="stat-grid reveal">
+      <div class="stat"><div class="num" data-count="4" data-suffix="+">0</div><div class="lbl">Years Experience</div></div>
+      <div class="stat"><div class="num" data-count="3">0</div><div class="lbl">CAD Software</div></div>
+      <div class="stat"><div class="num" data-count="2">0</div><div class="lbl">Metals · Gold &amp; Silver</div></div>
+      <div class="stat"><div class="num" data-count="13">0</div><div class="lbl">Featured Designs</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="skills">
+  <div class="eyebrow reveal">Capabilities</div>
+  <h2 class="sec-title reveal">A Toolkit Built for Precision</h2>
+  <div class="skills-grid reveal">
+    <div class="skill-card"><div class="skill-name">Jewelry CAD Design</div><div class="skill-desc">CAD modelling as per design for production-ready jewelry.</div></div>
+    <div class="skill-card"><div class="skill-name">Rhino</div><div class="skill-desc">Complete command over Rhino for jewelry modelling.</div></div>
+    <div class="skill-card"><div class="skill-name">Matrix</div><div class="skill-desc">Stone setting, gem reports and detailed CAD files in Matrix.</div></div>
+    <div class="skill-card"><div class="skill-name">Magix</div><div class="skill-desc">Additional software used alongside Rhino and Matrix.</div></div>
+    <div class="skill-card"><div class="skill-name">Jewelry Rendering</div><div class="skill-desc">Rendering of designs for client and brand presentation.</div></div>
+    <div class="skill-card"><div class="skill-name">Diamond &amp; Colour Stone</div><div class="skill-desc">Rings, pendants, earrings, bracelets and bangles.</div></div>
+    <div class="skill-card"><div class="skill-name">Polki Jewelry</div><div class="skill-desc">Rings, pendants, earrings, brooches, kangans, light jhumkas and lockets.</div></div>
+    <div class="skill-card"><div class="skill-name">Domestic &amp; Export</div><div class="skill-desc">Experience in both markets, with special expertise in export work.</div></div>
+  </div>
+</section>
+
+<section class="section" id="collections">
+  <div class="eyebrow reveal">Featured Work</div>
+  <h2 class="sec-title reveal">Selected CAD Designs</h2>
+  <div class="filter-row reveal" id="filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="rings">Rings</button>
+    <button class="filter-btn" data-filter="earrings">Earrings</button>
+    <button class="filter-btn" data-filter="pendants">Pendants</button>
+  </div>
+  <div class="gallery reveal" id="gallery"></div>
+  <div class="slider-hint">← Swipe to explore →</div>
+</section>
+
+<section class="section" id="experience">
+  <div class="eyebrow reveal">Experience</div>
+  <h2 class="sec-title reveal">A Path Shaped by Detail</h2>
+  <div class="timeline reveal">
+    <div class="t-item"><div class="t-dot"></div><div class="t-role">Jewelry CAD Designer</div><div class="t-co">SHB Design · Johri Bazar</div><div class="t-date">2022 — 2023</div>
+      <ul class="t-list"><li>Learned and strengthened foundational CAD and jewelry design skills</li><li>Worked on detailed designs for diamond and polki jewelry including rings, pendants, earrings, brooches, kangans, light jhumkas and lockets</li><li>Supported team projects and collaborated with senior designers to refine techniques</li></ul></div>
+    <div class="t-item"><div class="t-dot"></div><div class="t-role">Jewelry CAD Designer</div><div class="t-co">Krishna Jewellery · Chaura Rasta</div><div class="t-date">2023 — 2024</div>
+      <ul class="t-list"><li>Developed jewelry pieces according to client briefs and market trends</li><li>Specialized in diamond and polki work for various product lines</li><li>Improved speed and accuracy in CAD design</li></ul></div>
+    <div class="t-item"><div class="t-dot"></div><div class="t-role">Jewelry CAD Designer</div><div class="t-co">Devanshi Jewellery · Johri Bazar</div><div class="t-date">2024 — 2025</div>
+      <ul class="t-list"><li>Contributed fresh design ideas and CAD models for rings, pendants and lockets</li><li>Created unique designs independently based on market trends and client needs</li><li>Delivered high-quality, detailed designs that matched brand aesthetics</li></ul></div>
+    <div class="t-item"><div class="t-dot"></div><div class="t-role">Jewelry CAD Designer</div><div class="t-co">Lord Krishna</div><div class="t-date">1.5 Years</div>
+      <ul class="t-list"><li>Worked on colour stone and diamond jewelry, mostly export-type orders</li><li>Designed rings, pendants, earrings and other pieces in gold and silver</li></ul></div>
+    <div class="t-item"><div class="t-dot"></div><div class="t-role">Jewelry CAD Designer</div><div class="t-co">Divyanshu Jewels</div><div class="t-date">1 Year</div>
+      <ul class="t-list"><li>Created colour stone and diamond jewelry in the same design pattern for domestic orders</li><li>Also handled export work and silver jewelry</li></ul></div>
+    <div class="t-item"><div class="t-dot"></div><div class="t-role">Jewelry CAD Designer</div><div class="t-co">Sephora Ltd</div><div class="t-date">6 Months</div>
+      <ul class="t-list"><li>Designed diamond and colour stone bracelets, pendants, earrings and bangles (without locks)</li><li>Worked on both gold and silver jewelry</li></ul></div>
+    <div class="t-item"><div class="t-dot"></div><div class="t-role">Jewelry CAD Designer</div><div class="t-co">White Lotus</div>
+      <ul class="t-list"><li>Jewelry CAD design work</li></ul></div>
+  </div>
+</section>
+
+<section class="section" id="achievements">
+  <div class="eyebrow reveal">Achievements</div>
+  <h2 class="sec-title reveal">Recognized in the Details</h2>
+  <div class="ach-grid reveal">
+    <div class="ach-card"><div class="ach-title">Strong Learning Foundation</div><div class="ach-text">Hands-on CAD jewelry design expertise built during 1.5 years at SHB Design.</div></div>
+    <div class="ach-card"><div class="ach-title">Versatile Product Range</div><div class="ach-text">Intricate diamond, colour stone and polki pieces across multiple product types.</div></div>
+    <div class="ach-card"><div class="ach-title">Independent Design Creation</div><div class="ach-text">Original, self-conceptualized designs for rings and lockets.</div></div>
+    <div class="ach-card"><div class="ach-title">Consistent Quality &amp; Timely Delivery</div><div class="ach-text">High design accuracy and on-time CAD file delivery for smooth production.</div></div>
+  </div>
+</section>
+
+<section id="passion">
+  <canvas id="passion-canvas"></canvas>
+  <div class="passion-inner">
+    <h2 class="passion-title reveal">Jewelry Is More<br>Than Design</h2>
+    <p class="passion-text reveal">My focus is on delivering innovative, high-quality pieces that combine traditional elegance with modern aesthetics, ensuring each design aligns with brand vision and client satisfaction.</p>
+  </div>
+</section>
+
+<section class="section" id="contact">
+  <div style="text-align:center">
+    <div class="eyebrow reveal" style="justify-content:center">Contact</div>
+    <h2 class="sec-title reveal" style="font-size:clamp(30px,4vw,48px)">Let's Design Something Timeless</h2>
+    <div style="margin-top:50px" class="reveal">
+      <div class="contact-info-row"><span class="k">Name</span><span class="v">Anjali Ghosh</span></div>
+      <div class="contact-info-row"><span class="k">Location</span><span class="v">Jaipur, Rajasthan</span></div>
+      <div class="contact-info-row"><span class="k">Phone</span><span class="v">+91 63786 74057</span></div>
+      <div class="contact-info-row"><span class="k">Email</span><span class="v">kiyarpita@gmail.com</span></div>
+    </div>
+    <div class="social-row reveal"><a href="tel:+916378674057">Call</a><a href="https://wa.me/916378674057">WhatsApp</a><a href="mailto:kiyarpita@gmail.com">Email</a></div>
+  </div>
+</section>
+
+<footer><div class="fname">ANJALI GHOSH</div><div class="ftag">Jewelry CAD Designer · Jaipur · © 2026</div></footer>
+
+<div id="lightbox">
+  <div class="lb-close" id="lb-close">Close ✕</div>
+  <div class="lb-inner"><div id="lb-art"></div><div class="piece-cat" id="lb-cat"></div><div class="piece-name" style="font-size:30px" id="lb-name"></div><div class="lb-spec" id="lb-spec"></div></div>
+</div>
+
+<script>
+/* =================== DATA =================== */
+const pieces=[
+{cat:'earrings',name:'Navratan Cluster Earrings',img:'images/work-1.jpg',spec:'Ref DJRER0072 · 14KT / 18KT · Navratan colour stones, round diamonds &amp; marquise · 22.20 mm'},
+{cat:'earrings',name:'Oval Halo Stud Earrings',img:'images/work-2.jpg',spec:'Ref DJER0218 · 14KT / 18KT · Oval colour stone with 13 round diamonds · 5.56 × 7.55 mm'},
+{cat:'rings',name:'Crown Halo Ring',img:'images/work-3.jpg',spec:'Round centre stone, halo setting and pavé shank · CAD views with reference'},
+{cat:'rings',name:'Cushion Signet Ring',img:'images/work-4.jpg',spec:'Cushion-top signet ring · modelled in Rhino',dark:1},
+{cat:'rings',name:'Triple Oval Halo Ring',img:'images/work-5.jpg',spec:'Silver 2.9 gm · US size 8 · 3 oval colour stones with diamond halo'},
+{cat:'pendants',name:'Arrow Shield Pendant',img:'images/work-6.jpg',spec:'Silver 3.1 gm · 23 mm height'},
+{cat:'earrings',name:'Cushion Drop Earrings',img:'images/work-7.jpg',spec:'20.11 × 20.08 mm · 198 round diamonds, 0.71 tw · floral pavé centre'},
+{cat:'pendants',name:'Pavé Star Medallion Pendant',img:'images/work-8.jpg',spec:'32 × 24.01 mm · 216 round diamonds, 0.76 tw'},
+{cat:'rings',name:'Textured Band Ring',img:'images/work-9.jpg',spec:'Silver 2.7 gm · hand-carved bark texture pattern'},
+{cat:'pendants',name:'Bee Pendant',img:'images/work-10.jpg',spec:'Silver 3.9 gm · 24 mm height · round stone in abdomen'},
+{cat:'rings',name:'Oval Halo Cocktail Ring',img:'images/work-11.jpg',spec:'Silver 2.9 gm · 19.60 mm · oval colour stone with 146 round diamonds, 1.48 tw'},
+{cat:'rings',name:'Emerald-Cut Scroll Ring',img:'images/work-12.jpg',spec:'Silver 3.3 gm · 18.20 mm · emerald-cut centre stone with 142 round diamonds, 1.41 tw'},
+{cat:'rings',name:'Leaf &amp; Flower Ring',img:'images/work-13.jpg',spec:'Silver 2.3 gm · US size 10 · oval centre stone 8 × 6 mm'}
+];
+
+/* =================== GALLERY =================== */
+const galleryEl=document.getElementById('gallery');
+function renderGallery(f){
+  galleryEl.innerHTML=pieces.map((p,i)=>({p,i})).filter(o=>f==='all'||o.p.cat===f).map(({p,i})=>`
+    <div class="piece" data-i="${i}">
+      <div class="piece-art ${p.dark?'dark':''}"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
+      <div class="piece-overlay"><div class="piece-cat">${p.cat}</div><div class="piece-name">${p.name}</div></div>
+    </div>`).join('');
+  galleryEl.querySelectorAll('.piece').forEach(el=>{
+    el.addEventListener('mouseenter',()=>ring.classList.add('big'));
+    el.addEventListener('mouseleave',()=>ring.classList.remove('big'));
+    el.addEventListener('click',()=>{
+      const p=pieces[+el.dataset.i];
+      document.getElementById('lb-art').innerHTML=`<img src="${p.img}" alt="${p.name}">`;
+      document.getElementById('lb-cat').textContent=p.cat;
+      document.getElementById('lb-name').textContent=p.name;
+      document.getElementById('lb-spec').innerHTML=p.spec;
+      document.getElementById('lightbox').classList.add('open');
+    });
+  });
+}
+document.querySelectorAll('.filter-btn').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderGallery(btn.dataset.filter);
+}));
+document.getElementById('lb-close').addEventListener('click',()=>document.getElementById('lightbox').classList.remove('open'));
+document.getElementById('lightbox').addEventListener('click',e=>{if(e.target.id==='lightbox')e.target.classList.remove('open')});
+
+/* =================== PRELOADER =================== */
+window.addEventListener('load',()=>{
+  gsap.to('#loadbar',{width:'100%',duration:1.6,ease:'power2.inOut'});
+  gsap.to('#preloader .name',{opacity:1,duration:.8,delay:.3});
+  gsap.to('#preloader',{opacity:0,duration:.9,delay:2.0,onComplete:()=>{document.getElementById('preloader').style.visibility='hidden';runHeroIntro()}});
+});
+
+/* =================== CURSOR =================== */
+const dot=document.querySelector('.cursor-dot'),ring=document.querySelector('.cursor-ring');
+window.addEventListener('mousemove',e=>{
+  gsap.to(dot,{x:e.clientX,y:e.clientY,duration:.05});
+  gsap.to(ring,{x:e.clientX,y:e.clientY,duration:.35,ease:'power3.out'});
+});
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>ring.classList.add('big'));
+  el.addEventListener('mouseleave',()=>ring.classList.remove('big'));
+});
+renderGallery('all');
+
+/* =================== LENIS =================== */
+const lenis=new Lenis({duration:1.1,smoothWheel:true});
+lenis.on('scroll',()=>ScrollTrigger.update());
+gsap.ticker.add(t=>lenis.raf(t*1000));
+gsap.ticker.lagSmoothing(0);
+
+/* =================== GSAP / SCROLLTRIGGER =================== */
+gsap.registerPlugin(ScrollTrigger);
+function runHeroIntro(){
+  gsap.timeline()
+    .to('.split-line span',{y:'0%',stagger:.12,duration:1.1,ease:'power4.out'})
+    .to('.hero-eyebrow',{opacity:1,y:0,duration:.8},'-=0.7')
+    .to('.hero-sub',{opacity:1,duration:.8},'-=0.6')
+    .to('.hero-tag',{opacity:1,duration:.8},'-=0.6')
+    .to('.hero-btns',{opacity:1,duration:.8},'-=0.6');
+}
+gsap.set('.hero-eyebrow,.hero-sub,.hero-tag,.hero-btns',{opacity:0,y:20});
+document.querySelectorAll('.section .reveal,#passion .reveal').forEach(el=>{
+  gsap.to(el,{opacity:1,y:0,duration:1,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 85%'}});
+});
+document.querySelectorAll('.stat .num').forEach(el=>{
+  const target=+el.dataset.count,suffix=el.dataset.suffix||'';
+  ScrollTrigger.create({trigger:el,start:'top 90%',once:true,onEnter:()=>{
+    gsap.to({val:0},{val:target,duration:1.6,ease:'power2.out',onUpdate:function(){el.textContent=Math.floor(this.targets()[0].val)+suffix}});
+    el.textContent=target+suffix;
+  }});
+});
+
+/* =================== HERO THREE.JS DIAMOND =================== */
+(function(){
+  const canvas=document.getElementById('hero-canvas');
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,.1,100);
+  camera.position.set(0,0,7);
+  function resize(){renderer.setSize(window.innerWidth,window.innerHeight);camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix()}
+  const geo=new THREE.OctahedronGeometry(2.1,0);
+  const diamond=new THREE.Mesh(geo,new THREE.MeshPhysicalMaterial({color:0xD4AF37,metalness:.7,roughness:.15,flatShading:true,transparent:true,opacity:.55}));
+  scene.add(diamond);
+  diamond.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0xF7E7A1,transparent:true,opacity:.6})));
+  const l1=new THREE.PointLight(0xF7E7A1,2.2,50);l1.position.set(5,5,5);scene.add(l1);
+  const l2=new THREE.PointLight(0xD4AF37,1.4,50);l2.position.set(-5,-3,4);scene.add(l2);
+  scene.add(new THREE.AmbientLight(0x222222));
+  let mx=0,my=0;
+  window.addEventListener('mousemove',e=>{mx=e.clientX/window.innerWidth-.5;my=e.clientY/window.innerHeight-.5});
+  resize();window.addEventListener('resize',resize);
+  (function animate(){
+    requestAnimationFrame(animate);
+    diamond.rotation.y+=.0035;diamond.rotation.x+=.0012;
+    camera.position.x+=(mx*1.2-camera.position.x)*.03;
+    camera.position.y+=(-my*1.2-camera.position.y)*.03;
+    camera.lookAt(0,0,0);renderer.render(scene,camera);
+  })();
+})();
+
+/* =================== PARTICLES (hero rises, passion drifts) =================== */
+function particles(id,count,drift,color,parent){
+  const c=document.getElementById(id),ctx=c.getContext('2d');let w,h;
+  function resize(){const el=parent?c.parentElement:window;w=c.width=parent?el.offsetWidth:innerWidth;h=c.height=parent?el.offsetHeight:innerHeight}
+  resize();window.addEventListener('resize',resize);
+  const ps=Array.from({length:count},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.6+.3,s:Math.random()*.4+.1,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,o:Math.random()*.4+.2}));
+  (function draw(){
+    ctx.clearRect(0,0,w,h);
+    ps.forEach(p=>{
+      if(drift){p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=w;if(p.x>w)p.x=0;if(p.y<0)p.y=h;if(p.y>h)p.y=0}
+      else{p.y-=p.s;if(p.y<-5){p.y=h+5;p.x=Math.random()*w}}
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${color},${p.o})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  })();
+}
+particles('dust-canvas',70,false,'247,231,161',false);
+particles('passion-canvas',50,true,'212,175,55',true);
+</script>
+</body>
+</html>
